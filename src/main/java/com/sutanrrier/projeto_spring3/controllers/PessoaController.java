@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -30,8 +31,13 @@ public class PessoaController {
 
 	@GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<List<Pessoa>> listarPessoas() {
+		List<Pessoa> listaPessoas = pessoaService.listarPessoas();
 
-		return ResponseEntity.ok().body(pessoaService.listarPessoas());
+		//Exemplo de implementação de HATEOAS
+		listaPessoas.stream().forEach(p -> p.add(WebMvcLinkBuilder.linkTo(
+				WebMvcLinkBuilder.methodOn(PessoaController.class).listarPessoaPorId(p.getId())).withSelfRel()));
+		
+		return ResponseEntity.ok().body(listaPessoas);
 	}
 
 	@GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -41,7 +47,11 @@ public class PessoaController {
 		if (!pessoa.isPresent()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Não existe uma pessoa com este id.");
 		}
-
+		
+		//Exemplo de implementação de HATEOAS
+		pessoa.get().add(WebMvcLinkBuilder.linkTo(
+				WebMvcLinkBuilder.methodOn(PessoaController.class).listarPessoaPorId(id)).withSelfRel());
+		
 		return ResponseEntity.ok().body(pessoa.get());
 	}
 
@@ -50,7 +60,7 @@ public class PessoaController {
 
 		Pessoa pessoa = new Pessoa();
 		BeanUtils.copyProperties(pessoaDto, pessoa);
-		
+
 		return ResponseEntity.status(HttpStatus.CREATED).body(pessoaService.salvarPessoa(pessoa));
 	}
 
@@ -65,7 +75,7 @@ public class PessoaController {
 		Pessoa pessoaAtualizada = new Pessoa();
 		BeanUtils.copyProperties(pessoaDtoAtualizada, pessoaAtualizada);
 		pessoaAtualizada.setId(pessoa.get().getId());
-		
+
 		return ResponseEntity.status(HttpStatus.CREATED).body(pessoaService.salvarPessoa(pessoaAtualizada));
 	}
 

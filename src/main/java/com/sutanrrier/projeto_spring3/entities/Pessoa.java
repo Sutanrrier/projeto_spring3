@@ -3,6 +3,8 @@ package com.sutanrrier.projeto_spring3.entities;
 import java.io.Serializable;
 import java.util.Objects;
 
+import org.springframework.hateoas.RepresentationModel;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,7 +14,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "tb_pessoa")
-public class Pessoa implements Serializable {
+public class Pessoa extends RepresentationModel<Pessoa> implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
