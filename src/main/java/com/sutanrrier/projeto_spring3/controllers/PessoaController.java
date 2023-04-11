@@ -22,40 +22,88 @@ import com.sutanrrier.projeto_spring3.dtos.PessoaDto;
 import com.sutanrrier.projeto_spring3.entities.Pessoa;
 import com.sutanrrier.projeto_spring3.services.PessoaService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
-@RequestMapping(value = "/pessoa")
+@RequestMapping(value = "api/v1/pessoa")
+@Tag(name = "Pessoa", description = "Endpoints para administrar pessoas.")
 public class PessoaController {
 
 	@Autowired
 	private PessoaService pessoaService;
 
 	@GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(
+			description = "Retorna todas as pessoas do banco.", 
+			tags = {"Pessoa"}, 
+			responses = { 
+					@ApiResponse(description = "Sucess", responseCode = "200", 
+							content = {
+									@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = PessoaDto.class))) 
+							}),
+					@ApiResponse(description = "Bad Request", responseCode = "400", content = @Content),
+					@ApiResponse(description = "Not Found", responseCode = "404", content = @Content),
+					@ApiResponse(description = "Internal Error", responseCode = "500", content = @Content),
+
+	})
 	public ResponseEntity<List<Pessoa>> listarPessoas() {
 		List<Pessoa> listaPessoas = pessoaService.listarPessoas();
 
-		//Exemplo de implementação de HATEOAS
-		listaPessoas.stream().forEach(p -> p.add(WebMvcLinkBuilder.linkTo(
-				WebMvcLinkBuilder.methodOn(PessoaController.class).listarPessoaPorId(p.getId())).withSelfRel()));
-		
+		// Exemplo de implementação de HATEOAS
+		listaPessoas.stream()
+				.forEach(p -> p.add(WebMvcLinkBuilder
+						.linkTo(WebMvcLinkBuilder.methodOn(PessoaController.class).listarPessoaPorId(p.getId()))
+						.withSelfRel()));
+
 		return ResponseEntity.ok().body(listaPessoas);
 	}
 
 	@GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(
+			description = "Retorna uma pessoa no banco a partir de um 'id'.", 
+			tags = {"Pessoa"}, 
+			responses = { 
+					@ApiResponse(description = "Sucess", responseCode = "200", 
+							content = {
+									@Content(schema = @Schema(implementation = PessoaDto.class)) 
+							}),
+					@ApiResponse(description = "Bad Request", responseCode = "400", content = @Content),
+					@ApiResponse(description = "Not Found", responseCode = "404", content = @Content),
+					@ApiResponse(description = "Internal Error", responseCode = "500", content = @Content),
+
+	})
 	public ResponseEntity<Object> listarPessoaPorId(@PathVariable Long id) {
 		Optional<Pessoa> pessoa = pessoaService.listarPessoaPorId(id);
 
 		if (!pessoa.isPresent()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Não existe uma pessoa com este id.");
 		}
-		
-		//Exemplo de implementação de HATEOAS
-		pessoa.get().add(WebMvcLinkBuilder.linkTo(
-				WebMvcLinkBuilder.methodOn(PessoaController.class).listarPessoaPorId(id)).withSelfRel());
-		
+
+		// Exemplo de implementação de HATEOAS
+		pessoa.get().add(WebMvcLinkBuilder
+				.linkTo(WebMvcLinkBuilder.methodOn(PessoaController.class).listarPessoaPorId(id)).withSelfRel());
+
 		return ResponseEntity.ok().body(pessoa.get());
 	}
 
 	@PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(
+			description = "Cria uma pessoa nova no banco a partir de um objeto JSON enviado no corpo da requisição.", 
+			tags = {"Pessoa"}, 
+			responses = { 
+					@ApiResponse(description = "Created", responseCode = "201", 
+							content = {
+									@Content(schema = @Schema(implementation = PessoaDto.class)) 
+							}),
+					@ApiResponse(description = "Bad Request", responseCode = "400", content = @Content),
+					@ApiResponse(description = "Internal Error", responseCode = "500", content = @Content),
+
+	})
 	public ResponseEntity<Pessoa> cadastrarPessoa(@RequestBody PessoaDto pessoaDto) {
 
 		Pessoa pessoa = new Pessoa();
@@ -65,6 +113,19 @@ public class PessoaController {
 	}
 
 	@PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(
+			description = "Atualiza uma pessoa no banco a partir de um objeto JSON enviado no corpo da requisição.", 
+			tags = {"Pessoa"}, 
+			responses = { 
+					@ApiResponse(description = "Created", responseCode = "201", 
+							content = {
+									@Content(schema = @Schema(implementation = PessoaDto.class)) 
+							}),
+					@ApiResponse(description = "Bad Request", responseCode = "400", content = @Content),
+					@ApiResponse(description = "Not Found", responseCode = "404", content = @Content),
+					@ApiResponse(description = "Internal Error", responseCode = "500", content = @Content),
+
+	})
 	public ResponseEntity<Object> atualizarPessoa(@RequestBody PessoaDto pessoaDtoAtualizada, @PathVariable Long id) {
 		Optional<Pessoa> pessoa = pessoaService.listarPessoaPorId(id);
 
@@ -80,6 +141,16 @@ public class PessoaController {
 	}
 
 	@DeleteMapping(value = "/{id}")
+	@Operation(
+			description = "Apaga uma pessoa no banco a partir de um 'id'.", 
+			tags = {"Pessoa"}, 
+			responses = { 
+					@ApiResponse(description = "Sucess", responseCode = "200", content = @Content),
+					@ApiResponse(description = "Bad Request", responseCode = "400", content = @Content),
+					@ApiResponse(description = "Not Found", responseCode = "404", content = @Content),
+					@ApiResponse(description = "Internal Error", responseCode = "500", content = @Content),
+
+	})
 	public ResponseEntity<String> deletarPessoa(@PathVariable Long id) {
 		Optional<Pessoa> pessoa = pessoaService.listarPessoaPorId(id);
 

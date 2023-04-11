@@ -5,6 +5,7 @@ import java.io.Serializable;
 public class PessoaDto implements Serializable{
 	private static final long serialVersionUID = 1L;
 	
+	private Long id;
 	private String nome;
 	private String senha;
 
@@ -14,6 +15,7 @@ public class PessoaDto implements Serializable{
 	}
 
 	public PessoaDto(String nome, String senha) {
+		this.setId(null);
 		this.nome = nome;
 		this.senha = senha;
 	}
@@ -33,6 +35,14 @@ public class PessoaDto implements Serializable{
 
 	public void setSenha(String senha) {
 		this.senha = senha;
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
 	}
 	
 }
