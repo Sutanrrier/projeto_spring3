@@ -1,6 +1,5 @@
 package com.sutanrrier.projeto_spring3.security.jwt;
 
-import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 
@@ -10,7 +9,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.auth0.jwt.JWT;
@@ -19,10 +18,9 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.JWTVerifier;
 import com.sutanrrier.projeto_spring3.vo.security.TokenVO;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 
-@Service
+@Component
 public class JwtTokenProvider {
 
 	@Value("${security.jwt.token.secret-key}")
@@ -33,14 +31,6 @@ public class JwtTokenProvider {
 
 	@Autowired
 	private UserDetailsService userDetailsService;
-
-	Algorithm algorithm = null;
-
-	@PostConstruct
-	protected void init() {
-		secretKey = Base64.getEncoder().encodeToString(secretKey.getBytes());
-		algorithm = Algorithm.HMAC256(secretKey.getBytes());
-	}
 
 	public TokenVO createAcessToken(String username, List<String> roles) {
 		Date now = new Date();
@@ -57,7 +47,7 @@ public class JwtTokenProvider {
 			refreshToken = refreshToken.substring(7);
 		}
 		
-		JWTVerifier verifier = JWT.require(algorithm).build();
+		JWTVerifier verifier = JWT.require(Algorithm.HMAC512(secretKey)).build();
 		DecodedJWT decodedJWT = verifier.verify(refreshToken);
 		
 		String username = decodedJWT.getSubject();
@@ -74,7 +64,7 @@ public class JwtTokenProvider {
 				.withIssuedAt(now)
 				.withExpiresAt(validityRefreshToken)
 				.withSubject(username)
-				.sign(algorithm)
+				.sign(Algorithm.HMAC512(secretKey))
 				.strip();
 	}
 
@@ -87,7 +77,7 @@ public class JwtTokenProvider {
 				.withExpiresAt(validity)
 				.withSubject(username)
 				.withIssuer(issuerUrl)
-				.sign(algorithm)
+				.sign(Algorithm.HMAC512(secretKey))
 				.strip();
 	}
 
@@ -100,8 +90,7 @@ public class JwtTokenProvider {
 	}
 
 	private DecodedJWT decodedToken(String token) {
-		Algorithm alg = Algorithm.HMAC256(secretKey.getBytes());
-		JWTVerifier verifier = JWT.require(alg).build();
+		JWTVerifier verifier = JWT.require(Algorithm.HMAC512(secretKey)).build();
 		DecodedJWT decodedJWT = verifier.verify(token);
 		
 		return decodedJWT;
@@ -120,7 +109,7 @@ public class JwtTokenProvider {
 	public boolean validateToken(String token) {
 		DecodedJWT decodedJWT = decodedToken(token);
 
-		return (decodedJWT.getExpiresAt().before(new Date())) ? false : true;
+		return decodedJWT.getExpiresAt().after(new Date());
 	}
 	
 }
