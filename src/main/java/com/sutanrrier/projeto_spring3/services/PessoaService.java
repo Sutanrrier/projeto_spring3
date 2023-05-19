@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.sutanrrier.projeto_spring3.entities.Pessoa;
@@ -29,5 +31,13 @@ public class PessoaService {
 
 	public void apagarPessoa(Long id) {
 		pessoaRepository.deleteById(id);
+	}
+
+	public Page<Pessoa> listarPessoasPaginado(Pageable pageable) {
+		return pessoaRepository.findAll(pageable);
+	}
+	
+	public Page<Pessoa> listarPessoasPorNomePaginado(String name, Pageable pageable) {
+		return pessoaRepository.findPessoaByNome(name, pageable);
 	}
 }

@@ -5,6 +5,11 @@ import java.util.Optional;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -16,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sutanrrier.projeto_spring3.dtos.PessoaDto;
@@ -62,6 +68,32 @@ public class PessoaController {
 
 		return ResponseEntity.ok().body(listaPessoas);
 	}
+	
+	@GetMapping(value = "/p")
+	public ResponseEntity<Page<Pessoa>> listarPessoasPaginado(
+			@RequestParam(defaultValue = "0") Integer page,
+			@RequestParam(defaultValue = "5") Integer size) {
+	
+		Pageable pageable = PageRequest.of(page, size, Sort.by(Direction.ASC, "id"));
+		
+		Page<Pessoa> listaPessoasPaginado = pessoaService.listarPessoasPaginado(pageable);
+
+		return ResponseEntity.ok().body(listaPessoasPaginado);
+	}
+	
+	@GetMapping(value = "/listarPorNomePaginado")
+	public ResponseEntity<Page<Pessoa>> listarPessoasPorNomePaginado(
+			@RequestParam(defaultValue = "0") Integer page,
+			@RequestParam(defaultValue = "5") Integer size,
+			@RequestParam(defaultValue = "") String name) {
+		
+		Pageable pageable = PageRequest.of(page, size, Sort.by(Direction.ASC, "id"));
+		
+		Page<Pessoa> listaPessoasPaginado = pessoaService.listarPessoasPorNomePaginado(name, pageable);
+		
+		return ResponseEntity.ok().body(listaPessoasPaginado);
+	}
+
 
 	@GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(
